@@ -119,6 +119,9 @@ class DebBuilder(object):
                 if line.startswith("Version: "):
                     version = line[8:]
                     self._version=version.strip()
+                if line.startswith("Architecture: "):
+                    version = line[13:]
+                    self._architecture=version.strip()
 
     def _getPythonFiles(self):
         """@brief Get the python files that are to be installed.
@@ -274,14 +277,47 @@ class DebBuilder(object):
         for pythonFile in self._pythonFiles:
             self._createStartupFilepythonFile(os.path.basename(pythonFile))
 
+    def _getDebFilename(self):
+        """@brief Get the name of the deb output file."""
+        return '{}-{}-{}.deb'.format(self._packageName, self._version, self._architecture)
+
     def _build(self):
         """@brief Build the deb, rpm and tgz packages"""
-        debBuildCmd = "dpkg-deb -Zgzip -b %s %s/%s-%s-all.deb" % (DebBuilder.BUILD_FOLDER, DebBuilder.OUTPUT_FOLDER, self._packageName, self._version)
+        debFile = self._getDebFilename()
+        debBuildCmd = "dpkg-deb -Zgzip -b {} {}".format( DebBuilder.BUILD_FOLDER, os.path.join(DebBuilder.OUTPUT_FOLDER, debFile) )
         self._uio.info("Executing: {}".format(debBuildCmd))
         try:
             check_call(debBuildCmd.split())
         except OSError:
             raise DebBuilderError("Failed to build deb file.")
+
+    def _createPackagesFromDeb(self):
+        """@brief Create other packages from the deb file which must be built prior to calling this method."""
+        debFile = self._getDebFilename()
+        debPackage = os.path.join(DebBuilder.OUTPUT_FOLDER, debFile)
+        if os.path.isfile(debPackage):
+            cwd = os.getcwd()
+
+            if self._options.rpm:
+                os.chdir(DebBuilder.OUTPUT_FOLDER)
+                buildCmd = "sudo alien --to-rpm --scripts %s" % (debFile)
+                self._uio.info("Executing: {}".format(buildCmd))
+                try:
+                    check_call(buildCmd.split())
+                except OSError:
+                    raise DebBuilderError("Failed to build rpm from deb file.")
+                self._uio.info("Created rpm file from deb")
+
+            if self._options.tgz:
+                buildCmd = "sudo alien --to-tgz --scripts %s" % (debFile)
+                self._uio.info("Executing: {}".format(buildCmd))
+                try:
+                    check_call(buildCmd.split())
+                except OSError:
+                    raise DebBuilderError("Failed to build tgz from deb file.")
+                self._uio.info("Created tgz file from deb")
+
+            os.chdir(cwd)
 
     def run(self):
         """@brief Run the build process."""
@@ -300,6 +336,8 @@ class DebBuilder(object):
             self._copyFiles()
             self._createStartupFiles()
             self._build()
+            if self._options.rpm or self._options.tgz:
+                self._createPackagesFromDeb()
 
             if not self._options.lbp:
                 self._clean()
@@ -334,6 +372,8 @@ def main():
     opts.add_option("--debug", help="Enable debugging.", action="store_true", default=False)
     opts.add_option("--clean", help="Remove the %s folder." % (DebBuilder.OUTPUT_FOLDER), action="store_true", default=False)
     opts.add_option("--lbp",   help="Leave build path. A debugging option to allow the 'build' folder to be examined after the build has completed. This 'build' folder is normally removed when the build is complete.", action="store_true", default=False)
+    opts.add_option("--rpm",   help="Produce an RPM installer as well as the debian installer.", action="store_true", default=False)
+    opts.add_option("--tgz",   help="Produce a TGZ installer as well as the debian installer.", action="store_true", default=False)
 
     try:
         (options, args) = opts.parse_args()

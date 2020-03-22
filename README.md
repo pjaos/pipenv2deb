@@ -10,6 +10,8 @@ This includes support for
 The command line help for the program (pipenv2deb -h) is shown below.
 
 ```
+Usage: pipenv2deb [options]
+
 Build deb Linux install packages from a python pipenv environment.
 
 This command must be executed in a folder containing.
@@ -31,7 +33,6 @@ debian:       A folder containing the debian build files as detailed below (requ
 
 The output *.deb package file is placed in the local packages folder.
 
-
 Options:
   -h, --help  show this help message and exit
   --debug     Enable debugging.
@@ -39,6 +40,8 @@ Options:
   --lbp       Leave build path. A debugging option to allow the 'build' folder
               to be examined after the build has completed. This 'build'
               folder is normally removed when the build is complete.
+  --rpm       Produce an RPM installer as well as the debian installer.
+  --tgz       Produce a TGZ installer as well as the debian installer.
 
 ```
 

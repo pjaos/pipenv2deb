@@ -307,7 +307,8 @@ class DebBuilder(object):
 def main():
     uio = UIO()
 
-    opts = OptionParser(usage='\nBuild deb Linux install packages from a python pipenv environment.\n\n'
+    opts = OptionParser(usage=  'usage: %prog [options]\n'
+                                '\nBuild deb Linux install packages from a python pipenv environment.\n\n'
                                 'This command must be executed in a folder containing.\n'
                                 'Pipfile       The pipenv Pilefile (required).\n'
                                 '.venv         The pipenv .venv (virtual environment) folder (required).\n'
@@ -323,12 +324,13 @@ def main():
                                 '              To auto start these on install the postinst script must install them.\n'
                                 '- ******      Any other folder name (optional) that is not in the follwing list will be copied to\n'
                                 '              the package folder: {}, {}, {}, {}\n\n'
-                                'The output *.deb package file is placed in the local {} folder.\n'.format(DebBuilder.EXCLUDE_FOLDER_LIST[0],
-                                                                                                                       DebBuilder.EXCLUDE_FOLDER_LIST[1],
-                                                                                                                       DebBuilder.EXCLUDE_FOLDER_LIST[2],
-                                                                                                                       DebBuilder.EXCLUDE_FOLDER_LIST[3],
-                                                                                                                       DebBuilder.OUTPUT_FOLDER)
-                        )
+                                'The output *.deb package file is placed in the local {} folder.'.format(DebBuilder.EXCLUDE_FOLDER_LIST[0],
+                                DebBuilder.EXCLUDE_FOLDER_LIST[1],
+                                DebBuilder.EXCLUDE_FOLDER_LIST[2],
+                                DebBuilder.EXCLUDE_FOLDER_LIST[3],
+                                DebBuilder.OUTPUT_FOLDER)
+
+    )
     opts.add_option("--debug", help="Enable debugging.", action="store_true", default=False)
     opts.add_option("--clean", help="Remove the %s folder." % (DebBuilder.OUTPUT_FOLDER), action="store_true", default=False)
     opts.add_option("--lbp",   help="Leave build path. A debugging option to allow the 'build' folder to be examined after the build has completed. This 'build' folder is normally removed when the build is complete.", action="store_true", default=False)

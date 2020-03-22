@@ -1,0 +1,9 @@
+Package: python-pipenv2deb
+Section: Development
+Priority: optional
+Architecture: all
+Essential: no
+Installed-Size: 2
+Maintainer: Paul Austen <pausten.os@gmail.com>
+Description: Provides a simple way to package a pipenv python program in a *.deb file.
+Version: 1.0

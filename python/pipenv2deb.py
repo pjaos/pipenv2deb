@@ -264,7 +264,7 @@ class DebBuilder(object):
         fd = open(startupScriptFile, 'w')
         fd.write("#!/bin/sh\n")
         fd.write("export PIPENV_PIPFILE={}\n".format(pipFile))
-        fd.write("pipenv run {}\n".format(targetStartupFile))
+        fd.write("pipenv run {} $@\n".format(targetStartupFile))
         fd.close()
         self._uio.info("Created: {}".format(startupScriptFile))
         self._setExecutable(startupScriptFile)

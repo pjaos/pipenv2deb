@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#Return 1 if pip3 or pipenv is not installed. We must ensure that pipenv is
-#installed as it is required for pipenv2deb.
+# We must ensure that pipenv is installed as it is required for pipenv2deb.
+# Return 1 if pip3 or pipenv is not installed.
 if !(which pip3) > /dev/null ; then
   echo "pip3 is not installed."
   echo "Run the following commands."

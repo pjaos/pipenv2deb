@@ -1,0 +1,19 @@
+#!/bin/bash
+
+#Return 1 if pip3 or pipenv is not installed. We must ensure that pipenv is
+#installed as it is required for pipenv2deb.
+if !(which pip3) > /dev/null ; then
+  echo "pip3 is not installed."
+  echo "Run the following commands."
+  echo "    sudo apt install python3-pip"
+  exit 1
+fi
+
+if !(which pipenv) > /dev/null ; then
+  echo "pipenv is not installed."
+  echo "Run the following commands."
+  echo "    sudo pip3 install pipenv"
+  exit 1
+fi
+
+exit 0

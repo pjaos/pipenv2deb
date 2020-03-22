@@ -29,7 +29,7 @@ class DebBuilder(object):
     DEBIAN_FOLDER                   = "debian"
     BUILD_FOLDER                    = "build"
     INITD_FOLDER                    = "init.d"
-    ROOT_FS_FOLDER                  = "root_fs"
+    ROOT_FS_FOLDER                  = "root-fs"
     DEBIAN_CONTROL_FILE             = os.path.join(DEBIAN_FOLDER, "control")
     OUTPUT_FOLDER                   = "packages"
     PIPENV2DEB_PY                   = "pipenv2deb.py"
@@ -39,7 +39,7 @@ class DebBuilder(object):
     BUILD_INITD_FOLDER              = os.path.join(BUILD_FOLDER, os.path.join("etc", INITD_FOLDER) )
     BUILD_BIN_FOLDER                = "{}{}".format(BUILD_FOLDER, TARGET_BIN_FOLDER)
     VALID_DEBIAN_FOLDER_FILE_LIST   = ["control", "preinst", "postinst", "prerm", "postrm"]
-    EXCLUDE_FOLDER_LIST             = ["debian","packages", "build", ".venv"]
+    EXCLUDE_FOLDER_LIST             = [DEBIAN_FOLDER, OUTPUT_FOLDER, BUILD_FOLDER, VENV_FOLDER, ROOT_FS_FOLDER]
 
     def __init__(self, uio, options):
         """@brief Constructor
@@ -148,20 +148,6 @@ class DebBuilder(object):
         if len(pythonFileList) == 0:
             raise DebBuilderError("No python files found to install in current folder.")
 
-    def _getFileList(self, folder):
-        """@brief Get the debian files."""
-        fileList = []
-        cwd = os.getcwd()
-        folder = os.path.join(cwd, folder)
-
-        if os.path.isdir(folder):
-            entryList = os.listdir(folder)
-
-            for entry in entryList:
-                fileList.append(os.path.join(folder, entry) )
-
-        return fileList
-
     def _getPackageFolderList(self):
         """@brief Get a list of the folder that should sit next to the Pipfile and .venv folders when installed.
                   These folders will be installed next to the top level python command files and so maybe python
@@ -194,6 +180,14 @@ class DebBuilder(object):
             os.makedirs(DebBuilder.OUTPUT_FOLDER)
             self._uio.info("Created %s" % (DebBuilder.OUTPUT_FOLDER))
 
+        #If a local root-fs files exists copy these files and folders include
+        #these in the files to be packaged.
+        if os.path.isdir(DebBuilder.ROOT_FS_FOLDER):
+            srcFolder = DebBuilder.ROOT_FS_FOLDER
+            destFolder = DebBuilder.BUILD_FOLDER
+            shutil.copytree(srcFolder, destFolder)
+            self._uio.info("Copied %s to %s" % (srcFolder, destFolder))
+
         shutil.copytree(DebBuilder.DEBIAN_FOLDER, DebBuilder.BUILD_DEBIAN_FOLDER)
         self._uio.info("Created %s" % (DebBuilder.BUILD_DEBIAN_FOLDER))
         #It's not nessasary for the control file to be executable but the other
@@ -221,18 +215,6 @@ class DebBuilder(object):
         destFolder = os.path.join(packageFolder, DebBuilder.VENV_FOLDER)
         shutil.copytree(DebBuilder.VENV_FOLDER, destFolder)
         self._uio.info("Copied virtual environment to {}".format(destFolder))
-
-        #If a local root_fs files exists copy these files and folders include
-        #these in the files to be packaged.
-        self._rootFSFiles = self._getFileList(DebBuilder.ROOT_FS_FOLDER)
-        for rootFSFile in self._rootFSFiles:
-            if os.path.isfile(rootFSFile):
-                shutil.copy(rootFSFile, DebBuilder.BUILD_FOLDER)
-                self._uio.info("Copied %s to %s" % (rootFSFile, DebBuilder.BUILD_FOLDER))
-            else:
-                destFolder = os.path.join(DebBuilder.BUILD_FOLDER, os.path.basename(rootFSFile))
-                shutil.copytree(rootFSFile, destFolder)
-                self._uio.info("Copied %s to %s" % (rootFSFile, destFolder))
 
         #The Pipfile must be present for the pipenv to work
         shutil.copy(DebBuilder.PIP_FILE, packageFolder)
@@ -357,7 +339,7 @@ def main():
                                 '              postinst: Script executed after installation (optional).\n'
                                 '              prerm:    Script executed before removal (optional).\n'
                                 '              postrm:   Script executed after removal (optional).\n\n'
-                                '- root_fs:    Contains files/folders to be copied into the root of the destination file system (optional).\n'
+                                '- root-fs:    Contains files/folders to be copied into the root of the destination file system (optional).\n'
                                 '- init.d:     Contains startup script file/s to be installed into /etc/init.d (optional).\n'
                                 '              To auto start these on install the postinst script must install them.\n'
                                 '- ******      Any other folder name (optional) that is not in the follwing list will be copied to\n'

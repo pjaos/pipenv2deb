@@ -6,4 +6,4 @@ Essential: no
 Installed-Size: 2
 Maintainer: Paul Austen <pausten.os@gmail.com>
 Description: Provides a simple way to package a pipenv python program in a *.deb file.
-Version: 1.3
+Version: 1.4

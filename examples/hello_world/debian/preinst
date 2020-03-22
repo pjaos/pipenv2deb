@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# We must ensure that pip3 and pipenv packages are insalled
+# as the are required. Return 1 if pip3 or pipenv is not installed.
+if !(which pip3) > /dev/null ; then
+  echo "pip3 is not installed."
+  echo "Run the following command."
+  echo "    sudo apt install python3-pip"
+  exit 1
+fi
+
+if !(which pipenv) > /dev/null ; then
+  echo "pipenv is not installed."
+  echo "Run the following command."
+  echo "    sudo pip3 install pipenv"
+  exit 1
+fi
+
+exit 0

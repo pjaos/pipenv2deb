@@ -1,0 +1,8 @@
+Package: python-hello-world
+Section: Python
+Priority: optional
+Architecture: amd64
+Essential: no
+Maintainer: Paul Austen <pausten.os@gmail.com>
+Description: pipenv2deb example code that installs the hello-world python command.
+Version: 1.0

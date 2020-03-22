@@ -1,0 +1,13 @@
+[Desktop Entry]
+GenericName=gui-hello-world
+Name=gui-hello-world
+MimeType=text/plain;
+Exec=/usr/local/bin/gui-hello-world
+X-KDE-StartupNotify=true
+X-KDE-HasTempFileOption=true
+Icon=/usr/share/applications/gui-hello-world.png
+Type=Application
+Terminal=false
+Categories=GNOME;GTK;Network;
+X-Ayatana-Desktop-Shortcuts=X-OpenNewWindow
+

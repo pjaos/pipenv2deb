@@ -306,8 +306,7 @@ class DebBuilder(object):
 
 def main():
     uio = UIO()
-    cwd = os.getcwd()
-    uio.info("PJA: CWD = {}".format(cwd))
+
     opts = OptionParser(usage='\nBuild deb Linux install packages from a python pipenv environment.\n\n'
                                 'This command must be executed in a folder containing.\n'
                                 'Pipfile       The pipenv Pilefile (required).\n'

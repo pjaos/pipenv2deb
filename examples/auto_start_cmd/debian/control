@@ -1,0 +1,8 @@
+Package: python-file-logger
+Section: Python
+Priority: optional
+Architecture: amd64
+Essential: no
+Maintainer: Paul Austen <pausten.os@gmail.com>
+Description: pipenv2deb example code that run a process that will start when the computer starts.
+Version: 1.0

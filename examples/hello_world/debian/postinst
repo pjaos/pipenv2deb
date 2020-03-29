@@ -1,0 +1,3 @@
+#!/bin/sh
+
+echo "The hello_world command is now available."

@@ -1,0 +1,9 @@
+#!/bin/sh
+
+echo "********************************************"
+echo "*** The file_logger command is installed ***"
+echo "********************************************"
+echo ""
+echo "To start the file logger service enter 'sudo service file_logger start'"
+echo "To stop the file logger service enter 'sudo service file_logger stop'"
+echo ""

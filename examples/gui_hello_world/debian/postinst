@@ -1,0 +1,3 @@
+#!/bin/sh
+
+echo "The gui-hello-world command is now available."

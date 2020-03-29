@@ -1,45 +1,53 @@
 #!/usr/bin/env python3
 
-import  os
-import  shutil
-import  getpass
-import  stat
-from    optparse import OptionParser
-from    subprocess import check_call
+import os
+import shutil
+import getpass
+import stat
+from optparse import OptionParser
+from subprocess import check_call
 
 class DebBuilderError(Exception):
     pass
 
+
 class UIO(object):
     """@brief Responsible for user output"""
+
     def info(self, line):
         """@breif Show an info level message
            @param line The line of text."""
-        print( 'INFO:  %s' % (line) )
+        print('INFO:  %s' % (line))
 
     def error(self, line):
         """@breif Show an error level message
            @param line The line of text."""
-        print( 'ERROR: %s' % (line) )
+        print('ERROR: %s' % (line))
+
 
 class DebBuilder(object):
     """@brief Responsible for building debian files using distutils and python-stdeb packages"""
 
-    PIP_FILE                        = "Pipfile"
-    DEBIAN_FOLDER                   = "debian"
-    BUILD_FOLDER                    = "build"
-    INITD_FOLDER                    = "init.d"
-    ROOT_FS_FOLDER                  = "root-fs"
-    DEBIAN_CONTROL_FILE             = os.path.join(DEBIAN_FOLDER, "control")
-    OUTPUT_FOLDER                   = "packages"
-    PIPENV2DEB_PY                   = "pipenv2deb.py"
-    VENV_FOLDER                     = ".venv"
-    TARGET_BIN_FOLDER               = "/usr/local/bin"
-    BUILD_DEBIAN_FOLDER             = os.path.join(BUILD_FOLDER, "DEBIAN")
-    BUILD_INITD_FOLDER              = os.path.join(BUILD_FOLDER, os.path.join("etc", INITD_FOLDER) )
-    BUILD_BIN_FOLDER                = "{}{}".format(BUILD_FOLDER, TARGET_BIN_FOLDER)
-    VALID_DEBIAN_FOLDER_FILE_LIST   = ["control", "preinst", "postinst", "prerm", "postrm"]
-    EXCLUDE_FOLDER_LIST             = [DEBIAN_FOLDER, OUTPUT_FOLDER, BUILD_FOLDER, VENV_FOLDER, ROOT_FS_FOLDER]
+    PIP_FILE = "Pipfile"
+    PIP_LOCK_FILE = "Pipfile.lock"
+    DEBIAN_FOLDER = "debian"
+    BUILD_FOLDER = "build"
+    INITD_FOLDER = "init.d"
+    ROOT_FS_FOLDER = "root-fs"
+    DEBIAN_CONTROL_FILE = os.path.join(DEBIAN_FOLDER, "control")
+    DEBIAN_POST_INST_FILE = os.path.join(DEBIAN_FOLDER, "postinst")
+    CREATE_PIPENV_FILENAME = "create_pip_env.sh"
+    OUTPUT_FOLDER = "packages"
+    PIPENV2DEB_PY = "pipenv2deb.py"
+    VENV_FOLDER = ".venv"
+    TARGET_BIN_FOLDER = "/usr/local/bin"
+    DEBIAN_POST_INST_FILE = os.path.join(DEBIAN_FOLDER, "postinst")
+    BUILD_DEBIAN_FOLDER = os.path.join(BUILD_FOLDER, "DEBIAN")
+    BUILD_INITD_FOLDER = os.path.join(BUILD_FOLDER, os.path.join("etc", INITD_FOLDER))
+    BUILD_BIN_FOLDER = "{}{}".format(BUILD_FOLDER, TARGET_BIN_FOLDER)
+    VALID_DEBIAN_FOLDER_FILE_LIST = ["control", "preinst", "postinst", "prerm", "postrm"]
+    EXCLUDE_FOLDER_LIST = [DEBIAN_FOLDER, OUTPUT_FOLDER, BUILD_FOLDER, VENV_FOLDER, ROOT_FS_FOLDER]
+    BUILD_POST_INST_FILE = os.path.join(BUILD_DEBIAN_FOLDER, "postinst")
 
     def __init__(self, uio, options):
         """@brief Constructor
@@ -49,7 +57,7 @@ class DebBuilder(object):
         self._uio = uio
         self._options = options
         self._packageName = None
-        self._version     = None
+        self._version = None
 
     def _ensureRootUser(self):
         """@brief Ensure this script is run as root """
@@ -65,16 +73,16 @@ class DebBuilder(object):
         localDir = DebBuilder.BUILD_FOLDER
         if os.path.isdir(localDir):
             shutil.rmtree(localDir)
-            self._uio.info("Removed %s path" % (localDir) )
+            self._uio.info("Removed %s path" % (localDir))
 
         if os.path.isdir(DebBuilder.OUTPUT_FOLDER) and removeOutputFolder:
             shutil.rmtree(DebBuilder.OUTPUT_FOLDER)
-            self._uio.info("Removed %s path" % (DebBuilder.OUTPUT_FOLDER) )
+            self._uio.info("Removed %s path" % (DebBuilder.OUTPUT_FOLDER))
 
     def _checkPipenvInstalled(self):
         """@brief Check pipenv is installed."""
         try:
-            check_call(["pipenv","check"])
+            check_call(["pipenv", "check"])
         except OSError:
             raise DebBuilderError("pipenv not installed. Run 'pip3 install pipenv'")
 
@@ -82,46 +90,49 @@ class DebBuilder(object):
         """@brief Check the required files and folders exist."""
 
         if not os.path.isfile(DebBuilder.PIP_FILE):
-            raise DebBuilderError("%s file not found in local path." % (DebBuilder.PIP_FILE) )
+            raise DebBuilderError("%s file not found in local path." % (DebBuilder.PIP_FILE))
 
         if not os.path.isfile(DebBuilder.DEBIAN_CONTROL_FILE):
-            raise DebBuilderError("%s required file not found." % (DebBuilder.DEBIAN_CONTROL_FILE) )
+            raise DebBuilderError("%s required file not found." % (DebBuilder.DEBIAN_CONTROL_FILE))
 
-        #Ensure only valid filenames exist in the debian folder
+        # Ensure only valid filenames exist in the debian folder
         entryList = os.listdir(DebBuilder.DEBIAN_FOLDER)
         for entry in entryList:
             if entry not in DebBuilder.VALID_DEBIAN_FOLDER_FILE_LIST:
-                raise DebBuilderError("{} is an invalid {} folder file.".format(entry, DebBuilder.VALID_DEBIAN_FOLDER_FILE_LIST))
+                raise DebBuilderError(
+                    "{} is an invalid {} folder file.".format(entry, DebBuilder.VALID_DEBIAN_FOLDER_FILE_LIST))
 
         self._pythonFiles = self._getPythonFiles()
         if len(self._pythonFiles) == 0:
             raise DebBuilderError("No python files found to install. These should be in the local python folder.")
 
-        #For the .venv folder we just check it exists
-        vEnvFolder = os.path.join(os.getcwd(), DebBuilder.VENV_FOLDER)
-        if not os.path.isdir(vEnvFolder):
-            raise DebBuilderError("{} (virutal environment) folder not found.".format(vEnvFolder))
+        # If the .venv folder is to be included in the output deb file
+        if not self._options.no_venv:
+            # For the .venv folder we just check it exists
+            vEnvFolder = os.path.join(os.getcwd(), DebBuilder.VENV_FOLDER)
+            if not os.path.isdir(vEnvFolder):
+                raise DebBuilderError("{} (virutal environment) folder not found.".format(vEnvFolder))
 
     def _loadPackageAttr(self):
         """@brief Get the name of the package to be built.
             _getDebianFiles() must have been called previously."""
-        packageName=None
-        #Existance of DebBuilder.DEBIAN_CONTROL_FILE is checked in _checkFS()
+        packageName = None
+        # Existance of DebBuilder.DEBIAN_CONTROL_FILE is checked in _checkFS()
         if os.path.isfile(DebBuilder.DEBIAN_CONTROL_FILE):
             fd = open(DebBuilder.DEBIAN_CONTROL_FILE)
             lines = fd.readlines()
             fd.close()
             for line in lines:
-                line=line.strip()
+                line = line.strip()
                 if line.startswith("Package: "):
                     packageName = line[8:]
-                    self._packageName=packageName.strip()
+                    self._packageName = packageName.strip()
                 if line.startswith("Version: "):
                     version = line[8:]
-                    self._version=version.strip()
+                    self._version = version.strip()
                 if line.startswith("Architecture: "):
                     version = line[13:]
-                    self._architecture=version.strip()
+                    self._architecture = version.strip()
 
     def _getPythonFiles(self):
         """@brief Get the python files that are to be installed.
@@ -134,7 +145,7 @@ class DebBuilder(object):
                 continue
             if not entry.endswith(".py"):
                 continue
-            pythonFileList.append(os.path.join(pythonFolder, entry) )
+            pythonFileList.append(os.path.join(pythonFolder, entry))
 
         self._checkPythonFiles(pythonFileList)
 
@@ -142,9 +153,9 @@ class DebBuilder(object):
 
     def _checkPythonFiles(self, pythonFileList):
         """@brief Check that we have a valid python files list"""
-        #As long as one python file exists thats ok.
-        #Note _getPythonFiles() only loads the pythonFileList with files ending
-        #*.py
+        # As long as one python file exists thats ok.
+        # Note _getPythonFiles() only loads the pythonFileList with files ending
+        # *.py
         if len(pythonFileList) == 0:
             raise DebBuilderError("No python files found to install in current folder.")
 
@@ -172,6 +183,33 @@ class DebBuilder(object):
            @return The package folder."""
         return os.path.join(DebBuilder.TARGET_BIN_FOLDER, "{}.pipenvpkg".format(self._packageName))
 
+    def _createLocalRebuildPipenvScript(self):
+        """@brief Create a script to rebuild the pipenv in the local folder.
+                  This can be useful during development but is not used in the deb file.
+           @return None"""
+        createPipEnvFile = os.path.join(DebBuilder.CREATE_PIPENV_FILENAME)
+        targetPackageFolder = self._getTargetPackageFolder()
+        fd = open(createPipEnvFile, 'w')
+        fd.write("#!/bin/sh\n")
+        fd.write("export PIPENV_VENV_IN_PROJECT=enabled\n")
+        fd.write("pipenv --three install\n")
+        fd.close()
+        self._setExecutable(createPipEnvFile)
+
+    def _createTargetRebuildPipenvScript(self, packageFolder):
+        """@brief Create a script to rebuild the pipenv in the installed fileset.
+           @param packageFolder The target package folder.
+           @return None"""
+        createPipEnvFile = os.path.join(packageFolder, DebBuilder.CREATE_PIPENV_FILENAME)
+        targetPackageFolder = self._getTargetPackageFolder()
+        fd = open(createPipEnvFile, 'w')
+        fd.write("#!/bin/sh\n")
+        fd.write("cd {}\n".format(targetPackageFolder))
+        fd.write("export PIPENV_VENV_IN_PROJECT=enabled\n")
+        fd.write("pipenv --three install\n")
+        fd.close()
+        self._setExecutable(createPipEnvFile)
+
     def _copyFiles(self):
         """@brief Copy Files into the local build area
            @return None"""
@@ -180,8 +218,8 @@ class DebBuilder(object):
             os.makedirs(DebBuilder.OUTPUT_FOLDER)
             self._uio.info("Created %s" % (DebBuilder.OUTPUT_FOLDER))
 
-        #If a local root-fs files exists copy these files and folders include
-        #these in the files to be packaged.
+        # If a local root-fs files exists copy these files and folders include
+        # these in the files to be packaged.
         if os.path.isdir(DebBuilder.ROOT_FS_FOLDER):
             srcFolder = DebBuilder.ROOT_FS_FOLDER
             destFolder = DebBuilder.BUILD_FOLDER
@@ -190,17 +228,14 @@ class DebBuilder(object):
 
         shutil.copytree(DebBuilder.DEBIAN_FOLDER, DebBuilder.BUILD_DEBIAN_FOLDER)
         self._uio.info("Created %s" % (DebBuilder.BUILD_DEBIAN_FOLDER))
-        #It's not nessasary for the control file to be executable but the other
-        #script files that maybe present (postinst etc) must be.
-        self._setExecutableFiles(DebBuilder.BUILD_DEBIAN_FOLDER)
 
         packageFolder = self._getPackageFolder()
         if not os.path.isdir(packageFolder):
             os.makedirs(packageFolder)
             self._uio.info("Created %s" % (packageFolder))
 
-        #Copy any folders that are not part of the build system to the dest
-        #packaging folder.
+        # Copy any folders that are not part of the build system to the dest
+        # packaging folder.
         packageFolderList = self._getPackageFolderList()
         for _packageFolder in packageFolderList:
             destFolder = os.path.join(packageFolder, os.path.basename(_packageFolder))
@@ -212,23 +247,37 @@ class DebBuilder(object):
             self._uio.info("Copied init.d folder to {}".format(DebBuilder.BUILD_INITD_FOLDER))
             self._setExecutableFiles(DebBuilder.BUILD_INITD_FOLDER)
 
-        destFolder = os.path.join(packageFolder, DebBuilder.VENV_FOLDER)
-        shutil.copytree(DebBuilder.VENV_FOLDER, destFolder)
-        self._uio.info("Copied virtual environment to {}".format(destFolder))
-
-        #The Pipfile must be present for the pipenv to work
+        # The Pipfile must be present for the pipenv to work
         shutil.copy(DebBuilder.PIP_FILE, packageFolder)
         self._uio.info("Copied %s to %s" % (DebBuilder.PIP_FILE, packageFolder))
+        shutil.copy(DebBuilder.PIP_LOCK_FILE, packageFolder)
+        self._uio.info("Copied %s to %s" % (DebBuilder.PIP_LOCK_FILE, packageFolder))
+
+        self._createLocalRebuildPipenvScript()
+        self._createTargetRebuildPipenvScript(packageFolder)
 
         for pythonFile in self._pythonFiles:
             if os.path.isfile(pythonFile):
                 shutil.copy(pythonFile, packageFolder)
                 self._uio.info("Copied %s to %s" % (pythonFile, packageFolder))
 
+        # If the .venv folder is not to be included in the output deb file
+        if self._options.no_venv:
+            self._updatePostInstallScript()
+        else:
+            # Copy the .venv folder to the build folder
+            destFolder = os.path.join(packageFolder, DebBuilder.VENV_FOLDER)
+            shutil.copytree(DebBuilder.VENV_FOLDER, destFolder)
+            self._uio.info("Copied virtual environment to {}".format(destFolder))
+
+        # It's not nessasary for the control file to be executable but the other
+        # script files that maybe present (postinst etc) must be.
+        self._setExecutableFiles(DebBuilder.BUILD_DEBIAN_FOLDER)
+
     def _setExecutable(self, exeFile):
         """@brief Set a file as executable.
            @param  exeFile The file to be mde executablke."""
-        os.chmod(exeFile, stat.S_IREAD | stat.S_IRGRP | stat.S_IROTH | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH )
+        os.chmod(exeFile, stat.S_IREAD | stat.S_IRGRP | stat.S_IROTH | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
         self._uio.info("Set executable attribute: {}".format(exeFile))
 
     def _setExecutableFiles(self, folder):
@@ -245,7 +294,7 @@ class DebBuilder(object):
         startupScriptFile = os.path.join(DebBuilder.BUILD_BIN_FOLDER, startupScriptFilename)
         targetPackageFolder = self._getTargetPackageFolder()
         pipFile = os.path.join(targetPackageFolder, DebBuilder.PIP_FILE)
-        targetStartupFile=os.path.join(targetPackageFolder, pythonFile)
+        targetStartupFile = os.path.join(targetPackageFolder, pythonFile)
         fd = open(startupScriptFile, 'w')
         fd.write("#!/bin/sh\n")
         fd.write("export PIPENV_PIPFILE={}\n".format(pipFile))
@@ -259,6 +308,37 @@ class DebBuilder(object):
         for pythonFile in self._pythonFiles:
             self._createStartupFilepythonFile(os.path.basename(pythonFile))
 
+    def _updatePostInstallScript(self):
+        """@brief Ensure that the .venv folder is built when the package is installed."""
+        self._uio.info("Creating %s" % (DebBuilder.BUILD_POST_INST_FILE))
+        if os.path.isfile(DebBuilder.BUILD_POST_INST_FILE):
+            fd = open(DebBuilder.BUILD_POST_INST_FILE, 'r')
+            lines = fd.readlines()
+            fd.close()
+            if len(lines) > 0:
+                if not lines[0].startswith("#!"):
+                    # Note the DebBuilder.BUILD_POST_INST_FILE file is copied to DebBuilder.DEBIAN_POST_INST_FILE
+                    raise Exception(
+                        "The first line in the {} file must start with #!".format(DebBuilder.DEBIAN_POST_INST_FILE))
+            else:
+                lines.append("#!/bin/sh\n")
+
+        else:
+            lines = []
+            lines.append("#!/bin/sh\n")
+
+        targetPackageFolder = self._getTargetPackageFolder()
+        postInstCmd = "cd {} && ./{}\n".format(targetPackageFolder, DebBuilder.CREATE_PIPENV_FILENAME)
+        # We insert the post install command at the start of the script file so that if
+        # a postinst file used any commands are shown at the end of the installation process.
+        lines.insert(1, postInstCmd)
+
+        fd = open(DebBuilder.BUILD_POST_INST_FILE, 'w')
+        for line in lines:
+            fd.write(line)
+        fd.close()
+        self._setExecutable(DebBuilder.BUILD_POST_INST_FILE)
+
     def _getDebFilename(self):
         """@brief Get the name of the deb output file."""
         return '{}-{}-{}.deb'.format(self._packageName, self._version, self._architecture)
@@ -266,7 +346,8 @@ class DebBuilder(object):
     def _build(self):
         """@brief Build the deb, rpm and tgz packages"""
         debFile = self._getDebFilename()
-        debBuildCmd = "dpkg-deb -Zgzip -b {} {}".format( DebBuilder.BUILD_FOLDER, os.path.join(DebBuilder.OUTPUT_FOLDER, debFile) )
+        debBuildCmd = "dpkg-deb -Zgzip -b {} {}".format(DebBuilder.BUILD_FOLDER,
+                                                        os.path.join(DebBuilder.OUTPUT_FOLDER, debFile))
         self._uio.info("Executing: {}".format(debBuildCmd))
         try:
             check_call(debBuildCmd.split())
@@ -308,13 +389,13 @@ class DebBuilder(object):
 
         if self._options.clean:
 
-            self._clean(self._options.clean)
+            self._clean(True)
 
         else:
             self._checkPipenvInstalled()
             self._checkFS()
             self._loadPackageAttr()
-            self._clean()
+            self._clean(False)
             self._copyFiles()
             self._createStartupFiles()
             self._build()
@@ -322,40 +403,53 @@ class DebBuilder(object):
                 self._createPackagesFromDeb()
 
             if not self._options.lbp:
-                self._clean()
+                self._clean(False)
+
 
 def main():
     uio = UIO()
 
-    opts = OptionParser(usage=  'usage: %prog [options]\n'
-                                '\nBuild deb Linux install packages from a python pipenv environment.\n\n'
-                                'This command must be executed in a folder containing.\n'
-                                'Pipfile       The pipenv Pilefile (required).\n'
-                                '.venv         The pipenv .venv (virtual environment) folder (required).\n'
-                                '<python file> At least one python file wih a main entry point (required).\n'
-                                'debian:       A folder containing the debian build files as detailed below (required).\n'
-                                '              control:  The debian config file (required).\n'
-                                '              preinst:  Script executed before installation (optional).\n'
-                                '              postinst: Script executed after installation (optional).\n'
-                                '              prerm:    Script executed before removal (optional).\n'
-                                '              postrm:   Script executed after removal (optional).\n\n'
-                                '- root-fs:    Contains files/folders to be copied into the root of the destination file system (optional).\n'
-                                '- init.d:     Contains startup script file/s to be installed into /etc/init.d (optional).\n'
-                                '              To auto start these on install the postinst script must install them.\n'
-                                '- ******      Any other folder name (optional) that is not in the follwing list will be copied to\n'
-                                '              the package folder: {}, {}, {}, {}\n\n'
-                                'The output *.deb package file is placed in the local {} folder.'.format(DebBuilder.EXCLUDE_FOLDER_LIST[0],
-                                DebBuilder.EXCLUDE_FOLDER_LIST[1],
-                                DebBuilder.EXCLUDE_FOLDER_LIST[2],
-                                DebBuilder.EXCLUDE_FOLDER_LIST[3],
-                                DebBuilder.OUTPUT_FOLDER)
+    opts = OptionParser(usage='usage: %prog [options]\n'
+                              '\nBuild deb Linux install packages from a python pipenv environment.\n\n'
+                              'This command must be executed in a folder containing.\n'
+                              'Pipfile       The pipenv Pilefile (required).\n'
+                              '.venv         The pipenv .venv (virtual environment) folder (required).\n'
+                              '<python file> At least one python file wih a main entry point (required).\n'
+                              'debian:       A folder containing the debian build files as detailed below (required).\n'
+                              '              control:  The debian config file (required).\n'
+                              '              preinst:  Script executed before installation (optional).\n'
+                              '              postinst: Script executed after installation (optional).\n'
+                              '              prerm:    Script executed before removal (optional).\n'
+                              '              postrm:   Script executed after removal (optional).\n\n'
+                              '- root-fs:    Contains files/folders to be copied into the root of the destination file\n'
+                              '              system (optional).\n'
+                              '- init.d:     Contains startup script file/s to be installed into /etc/init.d (optional).\n'
+                              '              To auto start these on install the postinst script must start the service.\n'
+                              '- ******      Any other folder name (optional) that is not {}, {}, {}\n'
+                              '              or {} in the follwing list will be copied to the package folder.\n'
+                              '              These will typically be python modules that are not installed into\n'
+                              '              the virtual environment via pip3.\n\n'
+                              'The output *.deb package file is placed in the local {} folder.'.format(
+        DebBuilder.EXCLUDE_FOLDER_LIST[0],
+        DebBuilder.EXCLUDE_FOLDER_LIST[1],
+        DebBuilder.EXCLUDE_FOLDER_LIST[2],
+        DebBuilder.EXCLUDE_FOLDER_LIST[3],
+        DebBuilder.OUTPUT_FOLDER)
 
-    )
+                        )
     opts.add_option("--debug", help="Enable debugging.", action="store_true", default=False)
-    opts.add_option("--clean", help="Remove the %s folder." % (DebBuilder.OUTPUT_FOLDER), action="store_true", default=False)
-    opts.add_option("--lbp",   help="Leave build path. A debugging option to allow the 'build' folder to be examined after the build has completed. This 'build' folder is normally removed when the build is complete.", action="store_true", default=False)
-    opts.add_option("--rpm",   help="Produce an RPM installer as well as the debian installer.", action="store_true", default=False)
-    opts.add_option("--tgz",   help="Produce a TGZ installer as well as the debian installer.", action="store_true", default=False)
+    opts.add_option("--no_venv",
+                    help="Omit the .venv folder from the output deb file. This should reduce the size of the output deb file and the virtual environment (.venv folder) will be built when the deb file is installed on the target machine.",
+                    action="store_true", default=False)
+    opts.add_option("--clean", help="Remove the %s output folder containing the deb installer files." % (DebBuilder.OUTPUT_FOLDER), action="store_true",
+                    default=False)
+    opts.add_option("--lbp",
+                    help="Leave build path. A debugging option to allow the 'build' folder to be examined after the build has completed. This 'build' folder is normally removed when the build is complete.",
+                    action="store_true", default=False)
+    opts.add_option("--rpm", help="Produce an RPM installer as well as the debian installer.", action="store_true",
+                    default=False)
+    opts.add_option("--tgz", help="Produce a TGZ installer as well as the debian installer.", action="store_true",
+                    default=False)
 
     try:
         (options, args) = opts.parse_args()
@@ -374,7 +468,8 @@ def main():
             raise
 
         else:
-            uio.error( str(ex) )
+            uio.error(str(ex))
+
 
 if __name__ == '__main__':
     main()

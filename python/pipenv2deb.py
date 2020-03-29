@@ -106,13 +106,6 @@ class DebBuilder(object):
         if len(self._pythonFiles) == 0:
             raise DebBuilderError("No python files found to install. These should be in the local python folder.")
 
-        # If the .venv folder is to be included in the output deb file
-        if not self._options.no_venv:
-            # For the .venv folder we just check it exists
-            vEnvFolder = os.path.join(os.getcwd(), DebBuilder.VENV_FOLDER)
-            if not os.path.isdir(vEnvFolder):
-                raise DebBuilderError("{} (virutal environment) folder not found.".format(vEnvFolder))
-
     def _loadPackageAttr(self):
         """@brief Get the name of the package to be built.
             _getDebianFiles() must have been called previously."""
@@ -213,7 +206,15 @@ class DebBuilder(object):
     def _copyFiles(self):
         """@brief Copy Files into the local build area
            @return None"""
+        self._createLocalRebuildPipenvScript()
 
+        # If the .venv folder is to be included in the output deb file
+        if not self._options.no_venv:
+            # For the .venv folder we just check it exists
+            vEnvFolder = os.path.join(os.getcwd(), DebBuilder.VENV_FOLDER)
+            if not os.path.isdir(vEnvFolder):
+                raise DebBuilderError("{} (virtual environment) folder not found.".format(vEnvFolder))
+            
         if not os.path.isdir(DebBuilder.OUTPUT_FOLDER):
             os.makedirs(DebBuilder.OUTPUT_FOLDER)
             self._uio.info("Created %s" % (DebBuilder.OUTPUT_FOLDER))
@@ -253,7 +254,6 @@ class DebBuilder(object):
         shutil.copy(DebBuilder.PIP_LOCK_FILE, packageFolder)
         self._uio.info("Copied %s to %s" % (DebBuilder.PIP_LOCK_FILE, packageFolder))
 
-        self._createLocalRebuildPipenvScript()
         self._createTargetRebuildPipenvScript(packageFolder)
 
         for pythonFile in self._pythonFiles:

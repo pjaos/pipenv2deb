@@ -1,3 +1,3 @@
 #!/bin/sh
 
-pipenv --rm install
+pipenv --rm

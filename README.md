@@ -10,6 +10,7 @@ This includes support for
 The command line help for the program (pipenv2deb -h) is shown below.
 
 ```
+
 Usage: pipenv2deb [options]
 
 Build deb Linux install packages from a python pipenv environment.
@@ -25,18 +26,26 @@ debian:       A folder containing the debian build files as detailed below (requ
               prerm:    Script executed before removal (optional).
               postrm:   Script executed after removal (optional).
 
-- root_fs:    Contains files/folders to be copied into the root of the destination file system (optional).
+- root-fs:    Contains files/folders to be copied into the root of the destination file
+              system (optional).
 - init.d:     Contains startup script file/s to be installed into /etc/init.d (optional).
-              To auto start these on install the postinst script must install them.
-- ******      Any other folder name (optional) that is not in the follwing list will be copied to
-              the package folder: debian, packages, build, .venv
+              To auto start these on install the postinst script must start the service.
+- ******      Any other folder name (optional) that is not debian, packages, build
+              or .venv in the follwing list will be copied to the package folder.
+              These will typically be python modules that are not installed into
+              the virtual environment via pip3.
 
 The output *.deb package file is placed in the local packages folder.
 
 Options:
   -h, --help  show this help message and exit
   --debug     Enable debugging.
-  --clean     Remove the packages folder.
+  --no_venv   Omit the .venv folder from the output deb file. This should
+              reduce the size of the output deb file and the virtual
+              environment (.venv folder) will be built when the deb file is
+              installed on the target machine.
+  --clean     Remove the packages output folder containing the deb installer
+              files.
   --lbp       Leave build path. A debugging option to allow the 'build' folder
               to be examined after the build has completed. This 'build'
               folder is normally removed when the build is complete.

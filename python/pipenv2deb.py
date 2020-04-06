@@ -181,7 +181,6 @@ class DebBuilder(object):
                   This can be useful during development but is not used in the deb file.
            @return None"""
         createPipEnvFile = os.path.join(DebBuilder.CREATE_PIPENV_FILENAME)
-        targetPackageFolder = self._getTargetPackageFolder()
         fd = open(createPipEnvFile, 'w')
         fd.write("#!/bin/sh\n")
         fd.write("export PIPENV_VENV_IN_PROJECT=enabled\n")
@@ -392,7 +391,8 @@ class DebBuilder(object):
             self._clean(True)
 
         else:
-            self._checkPipenvInstalled()
+            if not self._options.no_check:
+                self._checkPipenvInstalled()
             self._checkFS()
             self._loadPackageAttr()
             self._clean(False)
@@ -450,6 +450,7 @@ def main():
                     default=False)
     opts.add_option("--tgz", help="Produce a TGZ installer as well as the debian installer.", action="store_true",
                     default=False)
+    opts.add_option("--no_check", help="Do not perform a 'pipenv check'", action="store_true", default=False)
 
     try:
         (options, args) = opts.parse_args()

@@ -51,7 +51,7 @@ Options:
               folder is normally removed when the build is complete.
   --rpm       Produce an RPM installer as well as the debian installer.
   --tgz       Produce a TGZ installer as well as the debian installer.
-
+  --no_check  Do not perform a 'pipenv check'
 ```
 
 ## Building the pipenv2deb debian file

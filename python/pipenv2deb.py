@@ -208,12 +208,12 @@ class DebBuilder(object):
         self._createLocalRebuildPipenvScript()
 
         # If the .venv folder is to be included in the output deb file
-        if not self._options.no_venv:
+        if self._options.venv:
             # For the .venv folder we just check it exists
             vEnvFolder = os.path.join(os.getcwd(), DebBuilder.VENV_FOLDER)
             if not os.path.isdir(vEnvFolder):
                 raise DebBuilderError("{} (virtual environment) folder not found.".format(vEnvFolder))
-            
+
         if not os.path.isdir(DebBuilder.OUTPUT_FOLDER):
             os.makedirs(DebBuilder.OUTPUT_FOLDER)
             self._uio.info("Created %s" % (DebBuilder.OUTPUT_FOLDER))
@@ -261,13 +261,13 @@ class DebBuilder(object):
                 self._uio.info("Copied %s to %s" % (pythonFile, packageFolder))
 
         # If the .venv folder is not to be included in the output deb file
-        if self._options.no_venv:
-            self._updatePostInstallScript()
-        else:
+        if self._options.venv:
             # Copy the .venv folder to the build folder
             destFolder = os.path.join(packageFolder, DebBuilder.VENV_FOLDER)
             shutil.copytree(DebBuilder.VENV_FOLDER, destFolder)
             self._uio.info("Copied virtual environment to {}".format(destFolder))
+        else:
+            self._updatePostInstallScript()
 
         # It's not nessasary for the control file to be executable but the other
         # script files that maybe present (postinst etc) must be.
@@ -391,7 +391,7 @@ class DebBuilder(object):
             self._clean(True)
 
         else:
-            if not self._options.no_check:
+            if self._options.check:
                 self._checkPipenvInstalled()
             self._checkFS()
             self._loadPackageAttr()
@@ -438,8 +438,8 @@ def main():
 
                         )
     opts.add_option("--debug", help="Enable debugging.", action="store_true", default=False)
-    opts.add_option("--no_venv",
-                    help="Omit the .venv folder from the output deb file. This should reduce the size of the output deb file and the virtual environment (.venv folder) will be built when the deb file is installed on the target machine.",
+    opts.add_option("--venv",
+                    help="Include the .venv folder from the output deb file. This increases the size output deb file but ensures the virtual environment is copied rather than rebuilt on the target machine.",
                     action="store_true", default=False)
     opts.add_option("--clean", help="Remove the %s output folder containing the deb installer files." % (DebBuilder.OUTPUT_FOLDER), action="store_true",
                     default=False)
@@ -450,7 +450,7 @@ def main():
                     default=False)
     opts.add_option("--tgz", help="Produce a TGZ installer as well as the debian installer.", action="store_true",
                     default=False)
-    opts.add_option("--no_check", help="Do not perform a 'pipenv check'", action="store_true", default=False)
+    opts.add_option("--check", help="Perform a 'pipenv check' before building the installer.", action="store_true", default=False)
 
     try:
         (options, args) = opts.parse_args()

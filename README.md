@@ -58,4 +58,4 @@ Options:
 
 To build a deb installer file for this package ensure p3build is installed
 and enter 'sudo p3build'. This will create the *.deb file in the packages
-folder.
+folder. See https://github.com/pjaos/p3build for details on installing p3build.

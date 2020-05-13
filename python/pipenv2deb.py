@@ -34,6 +34,8 @@ class DebBuilder(object):
     BUILD_FOLDER = "build"
     INITD_FOLDER = "init.d"
     ROOT_FS_FOLDER = "root-fs"
+    GIT_FOLDER = ".git"
+    PYCACHE_FOLDER = "__pycache__"
     DEBIAN_CONTROL_FILE = os.path.join(DEBIAN_FOLDER, "control")
     DEBIAN_POST_INST_FILE = os.path.join(DEBIAN_FOLDER, "postinst")
     CREATE_PIPENV_FILENAME = "create_pip_env.sh"
@@ -46,7 +48,7 @@ class DebBuilder(object):
     BUILD_INITD_FOLDER = os.path.join(BUILD_FOLDER, os.path.join("etc", INITD_FOLDER))
     BUILD_BIN_FOLDER = "{}{}".format(BUILD_FOLDER, TARGET_BIN_FOLDER)
     VALID_DEBIAN_FOLDER_FILE_LIST = ["control", "preinst", "postinst", "prerm", "postrm"]
-    EXCLUDE_FOLDER_LIST = [DEBIAN_FOLDER, OUTPUT_FOLDER, BUILD_FOLDER, VENV_FOLDER, ROOT_FS_FOLDER]
+    EXCLUDE_FOLDER_LIST = [DEBIAN_FOLDER, OUTPUT_FOLDER, BUILD_FOLDER, VENV_FOLDER, ROOT_FS_FOLDER, GIT_FOLDER, PYCACHE_FOLDER]
     BUILD_POST_INST_FILE = os.path.join(BUILD_DEBIAN_FOLDER, "postinst")
 
     def __init__(self, uio, options):

@@ -199,7 +199,9 @@ class DebBuilder(object):
         fd = open(createPipEnvFile, 'w')
         fd.write("#!/bin/sh\n")
         fd.write("cd {}\n".format(targetPackageFolder))
-        fd.write("export PIPENV_VENV_IN_PROJECT=enabled\n")
+        #If the user does not want the .venv folder outside the install path
+        if not self._options.venv_oip:
+            fd.write("export PIPENV_VENV_IN_PROJECT=enabled\n")
         fd.write("pipenv --three install\n")
         fd.close()
         self._setExecutable(createPipEnvFile)
@@ -298,7 +300,9 @@ class DebBuilder(object):
         targetStartupFile = os.path.join(targetPackageFolder, pythonFile)
         fd = open(startupScriptFile, 'w')
         fd.write("#!/bin/sh\n")
-        fd.write("export PIPENV_PIPFILE={}\n".format(pipFile))
+        #If the user does not want the .venv folder outside the install path
+        if not self._options.venv_oip:
+            fd.write("export PIPENV_PIPFILE={}\n".format(pipFile))
         fd.write("pipenv run {} $@\n".format(targetStartupFile))
         fd.close()
         self._uio.info("Created: {}".format(startupScriptFile))
@@ -329,7 +333,21 @@ class DebBuilder(object):
             lines.append("#!/bin/sh\n")
 
         targetPackageFolder = self._getTargetPackageFolder()
-        postInstCmd = "cd {} && ./{}\n".format(targetPackageFolder, DebBuilder.CREATE_PIPENV_FILENAME)
+        #If the user wants the .venv folder outside the install path
+        if self._options.venv_oip:
+            orgUser = os.environ['SUDO_USER']
+            if orgUser and len(orgUser) > 0:
+                #We need to create the virtual env as non root user so that the out of install path 
+                #virtual environment folder is created with and ownership of the install user.
+                #This folder will typically be under ~/.local/share/virtualenvs
+                postInstCmd = 'cd {} && /usr/bin/sudo -u {} pipenv install\n'.format(targetPackageFolder, orgUser)
+                
+            else:
+                raise Exception("Install failed: SUDO_USER environmental variable not found.")
+
+        else:
+            postInstCmd = "cd {} && ./{}\n".format(targetPackageFolder, DebBuilder.CREATE_PIPENV_FILENAME)
+
         # We insert the post install command at the start of the script file so that if
         # a postinst file used any commands are shown at the end of the installation process.
         lines.insert(1, postInstCmd)
@@ -453,6 +471,7 @@ def main():
     opts.add_option("--tgz", help="Produce a TGZ installer as well as the debian installer.", action="store_true",
                     default=False)
     opts.add_option("--check", help="Perform a 'pipenv check' before building the installer.", action="store_true", default=False)
+    opts.add_option("--venv_oip", help="If this option is used the .venv folder is not placed in the install path. The default is for the .venv foldler to be placed in the install path under /usr/local/bin/<app folder name>. If this option is used then the default pipenv location is used which is typically under ~/.local/share/virtualenvs", action="store_true", default=False)
 
     try:
         (options, args) = opts.parse_args()

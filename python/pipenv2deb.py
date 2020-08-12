@@ -300,10 +300,9 @@ class DebBuilder(object):
         targetStartupFile = os.path.join(targetPackageFolder, pythonFile)
         fd = open(startupScriptFile, 'w')
         fd.write("#!/bin/sh\n")
-        #If the user does not want the .venv folder outside the install path
-        if not self._options.venv_oip:
-            fd.write("export PIPENV_PIPFILE={}\n".format(pipFile))
-        fd.write("pipenv run {} $@\n".format(targetStartupFile))
+        #Run the command providing the location of the Pipfile
+        fd.write("PIPENV_PIPFILE={} pipenv run {} $@\n".format(pipFile, targetStartupFile))
+
         fd.close()
         self._uio.info("Created: {}".format(startupScriptFile))
         self._setExecutable(startupScriptFile)

@@ -12,7 +12,7 @@ def main():
 
     count=0
     while True:
-        fd = open("/var/log/file_log.txt", 'w')
+        fd = open("/var/log/file_log.txt", 'a')
         fd.write("count={}\n".format(count))
         fd.close()
         sleep(1)

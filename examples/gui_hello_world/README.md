@@ -21,7 +21,6 @@ app.setPalette(palette)
 button = QPushButton('Hello World')
 button.show()
 app.exec_()
-
 ```
 
 ## Required files
@@ -49,10 +48,16 @@ Before the program can be executed or packaged the python virtual environment mu
 E.G
 
 ```
-./create_virtual_env.sh
-The pypi server must be running before running this.
-Installing dependencies from Pipfile.lock (ca72e7)…
-  🐍   ▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉ 0/0 — 00:00:00
+./create_pip_env.sh
+./create_pip_env.sh
+Creating a virtualenv for this project...
+Pipfile: /scratch/git_repos/python3/pipenv2deb/examples/gui_hello_world/Pipfile
+Using /usr/bin/python3.8 (3.8.5) to create virtualenv...
+
+...
+
+Installing dependencies from Pipfile.lock (423b81)...
+  🐍   ▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉ 3/3 — 00:00:03
 To activate this project's virtualenv, run pipenv shell.
 Alternatively, run a command inside the virtualenv with pipenv run.
 ```
@@ -68,22 +73,19 @@ pipenv run ./gui-hello-world.py
 Once the virtual environment has been created the debian package maybe created using the following command.
 
 ```
-sudo pipenv2deb
-Checking PEP 508 requirements…
-Passed!
-Checking installed package safety…
-All good!
+sudo python3 -m pipenv2deb
+INFO:  Set executable attribute: create_pip_env.sh
 INFO:  Copied root-fs to build
 INFO:  Created build/DEBIAN
-INFO:  Set executable attribute: build/DEBIAN/postinst
-INFO:  Set executable attribute: build/DEBIAN/postrm
-INFO:  Set executable attribute: build/DEBIAN/prerm
-INFO:  Set executable attribute: build/DEBIAN/preinst
-INFO:  Set executable attribute: build/DEBIAN/control
 INFO:  Created build/usr/local/bin/python-gui-hello-world.pipenvpkg
-INFO:  Copied virtual environment to build/usr/local/bin/python-gui-hello-world.pipenvpkg/.venv
-INFO:  Copied Pipfile to build/usr/local/bin/python-gui-hello-world.pipenvpkg
-INFO:  Copied /scratch/git_repos/python3/pipenv2deb/examples/gui_hello_world/gui-hello-world.py to build/usr/local/bin/python-gui-hello-world.pipenvpkg
+
+...
+
+INFO:  Creating build/DEBIAN/postinst
+INFO:  Set executable attribute: build/DEBIAN/postinst
+INFO:  Set executable attribute: build/DEBIAN/control
+INFO:  Set executable attribute: build/DEBIAN/postinst
+INFO:  Set executable attribute: build/DEBIAN/preinst
 INFO:  Created: build/usr/local/bin/gui-hello-world
 INFO:  Set executable attribute: build/usr/local/bin/gui-hello-world
 INFO:  Executing: dpkg-deb -Zgzip -b build packages/python-gui-hello-world-1.0-amd64.deb
@@ -97,13 +99,24 @@ The debian package is installed as shown below
 ```
 sudo dpkg -i packages/python-gui-hello-world-1.0-amd64.deb
 Selecting previously unselected package python-gui-hello-world.
-(Reading database ... 415090 files and directories currently installed.)
+(Reading database ... 447937 files and directories currently installed.)
 Preparing to unpack .../python-gui-hello-world-1.0-amd64.deb ...
 Unpacking python-gui-hello-world (1.0) ...
 Setting up python-gui-hello-world (1.0) ...
-Processing triggers for desktop-file-utils (0.23+linuxmint5) ...
-Processing triggers for gnome-menus (3.13.3-11ubuntu1.1) ...
-Processing triggers for mime-support (3.60ubuntu1) ...
+Creating a virtualenv for this project...
+
+...
+
+✔ Successfully created virtual environment!
+Virtualenv location: /usr/local/bin/python-gui-hello-world.pipenvpkg/.venv
+Installing dependencies from Pipfile.lock (423b81)...
+  🐍   ▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉ 3/3 — 00:00:10
+To activate this project's virtualenv, run pipenv shell.
+Alternatively, run a command inside the virtualenv with pipenv run.
+The gui-hello-world command is now available.
+Processing triggers for gnome-menus (3.36.0-1ubuntu1) ...
+Processing triggers for desktop-file-utils (0.24-1ubuntu3) ...
+Processing triggers for mime-support (3.64ubuntu1) ...
 ```
 
 ## Running the gui-hello-world command

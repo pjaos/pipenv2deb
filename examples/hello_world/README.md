@@ -43,18 +43,11 @@ Before the program can be executed or packaged the python virtual environment mu
 E.G
 
 ```
-./create_virtual_env.sh
-The pypi server must be running before running this.
-Creating a virtualenv for this project…
-Pipfile: /scratch/git_repos/python3/pipenv2deb/examples/gui_hello_world/Pipfile
-Using /usr/bin/python3.6 (3.6.8) to create virtualenv…
-⠸ Creating virtual environment...created virtual environment CPython3.6.8.final.0-64 in 130ms
-  creator CPython3Posix(dest=/scratch/git_repos/python3/pipenv2deb/examples/gui_hello_world/.venv, clear=False, global=False)
-  seeder FromAppData(download=False, pip=latest, setuptools=latest, wheel=latest, via=copy, app_data_dir=/home/pja/.local/share/virtualenv/seed-app-data/v1.0.1)
-  activators BashActivator,CShellActivator,FishActivator,PowerShellActivator,PythonActivator,XonshActivator
+./create_pip_env.sh
+Creating a virtualenv for this project...
 
-✔ Successfully created virtual environment!
-Virtualenv location: /scratch/git_repos/python3/pipenv2deb/examples/gui_hello_world/.venv
+...
+
 Installing dependencies from Pipfile.lock (a8bd1f)…
   🐍   ▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉ 2/2 — 00:00:04
 To activate this project's virtualenv, run pipenv shell.
@@ -74,18 +67,19 @@ Hello World
 Once the virtual environment has been created the debian package maybe created using the following command.
 
 ```
-sudo pipenv2deb
-Checking PEP 508 requirements…
-Passed!
-Checking installed package safety…
-All good!
-INFO:  Created packages
+sudo python3 -m pipenv2deb
+INFO:  Removed build path
+INFO:  Set executable attribute: create_pip_env.sh
+INFO:  Copied root-fs to build
 INFO:  Created build/DEBIAN
+
+...
+
+INFO:  Creating build/DEBIAN/postinst
+INFO:  Set executable attribute: build/DEBIAN/postinst
 INFO:  Set executable attribute: build/DEBIAN/control
-INFO:  Created build/usr/local/bin/python-hello-world.pipenvpkg
-INFO:  Copied virtual environment to build/usr/local/bin/python-hello-world.pipenvpkg/.venv
-INFO:  Copied Pipfile to build/usr/local/bin/python-hello-world.pipenvpkg
-INFO:  Copied /scratch/git_repos/python3/pipenv2deb/examples/hello_world/hello_world.py to build/usr/local/bin/python-hello-world.pipenvpkg
+INFO:  Set executable attribute: build/DEBIAN/postinst
+INFO:  Set executable attribute: build/DEBIAN/preinst
 INFO:  Created: build/usr/local/bin/hello_world
 INFO:  Set executable attribute: build/usr/local/bin/hello_world
 INFO:  Executing: dpkg-deb -Zgzip -b build packages/python-hello-world-1.0-amd64.deb

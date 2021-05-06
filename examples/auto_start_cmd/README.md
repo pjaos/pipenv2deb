@@ -1,20 +1,33 @@
-# hello-world
+# file logger
 This example shows how to install a program onto a Linux system using
 the pipenv2deb tool.
 
 ## Program to be installed
-The python code simply prints Hello World to stdout on the terminal from which
-it is invoked. The hello-world.py file contains the following
+The python code logs data to a file and records the PID of process.
 
 ```
 #!/usr/bin/env python3
 
+import  os
+from    time import sleep
+
 def main():
-    print("Hello World")
+
+    pid=os.getpid()
+    fd = open("/var/run/file_logger.pid", 'w')
+    fd.write("{}\n".format(pid))
+    fd.close()
+
+    count=0
+    while True:
+        fd = open("/var/log/file_log.txt", 'a')
+        fd.write("count={}\n".format(count))
+        fd.close()
+        sleep(1)
+        count=count+1
 
 if __name__ == '__main__':
     main()
-
 ```
 
 
@@ -22,13 +35,13 @@ if __name__ == '__main__':
 The only required file is debian/control. This provides some details on the program.
 
 ```
-Package: python-hello-world
+Package: python-file-logger
 Section: Python
 Priority: optional
 Architecture: amd64
 Essential: no
 Maintainer: Paul Austen <pausten.os@gmail.com>
-Description: pipenv2deb example code that insalls the hello-world python command.
+Description: pipenv2deb example code that run a process that will start when the computer starts.
 Version: 1.0
 ```
 
@@ -43,86 +56,116 @@ Before the program can be executed or packaged the python virtual environment mu
 E.G
 
 ```
-./create_virtual_env.sh
-The pypi server must be running before running this.
-Creating a virtualenv for this project…
-Pipfile: /scratch/git_repos/python3/pipenv2deb/examples/gui_hello_world/Pipfile
-Using /usr/bin/python3.6 (3.6.8) to create virtualenv…
-⠸ Creating virtual environment...created virtual environment CPython3.6.8.final.0-64 in 130ms
-  creator CPython3Posix(dest=/scratch/git_repos/python3/pipenv2deb/examples/gui_hello_world/.venv, clear=False, global=False)
-  seeder FromAppData(download=False, pip=latest, setuptools=latest, wheel=latest, via=copy, app_data_dir=/home/pja/.local/share/virtualenv/seed-app-data/v1.0.1)
-  activators BashActivator,CShellActivator,FishActivator,PowerShellActivator,PythonActivator,XonshActivator
+./create_pip_env.sh
+Creating a virtualenv for this project...
 
-✔ Successfully created virtual environment!
-Virtualenv location: /scratch/git_repos/python3/pipenv2deb/examples/gui_hello_world/.venv
-Installing dependencies from Pipfile.lock (a8bd1f)…
-  🐍   ▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉ 2/2 — 00:00:04
+...
+
+Installing dependencies from Pipfile.lock (db4242)...
+  🐍   ▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉ 0/0 — 00:00:00
 To activate this project's virtualenv, run pipenv shell.
 Alternatively, run a command inside the virtualenv with pipenv run.
-
-```
-
-Once this has been done the program maybe executed inside the virtual environment using the following command.
-
-```
-pipenv run ./hello-world.py
-Hello World
-
 ```
 
 ## Building the deb file
 Once the virtual environment has been created the debian package maybe created using the following command.
 
 ```
-sudo pipenv2deb
-Checking PEP 508 requirements…
-Passed!
-Checking installed package safety…
-All good!
-INFO:  Created packages
+sudo python3 -m pipenv2deb
+INFO:  Set executable attribute: create_pip_env.sh
+INFO:  Copied root-fs to build
 INFO:  Created build/DEBIAN
-INFO:  Set executable attribute: build/DEBIAN/control
-INFO:  Created build/usr/local/bin/python-hello-world.pipenvpkg
-INFO:  Copied virtual environment to build/usr/local/bin/python-hello-world.pipenvpkg/.venv
-INFO:  Copied Pipfile to build/usr/local/bin/python-hello-world.pipenvpkg
-INFO:  Copied /scratch/git_repos/python3/pipenv2deb/examples/hello_world/hello_world.py to build/usr/local/bin/python-hello-world.pipenvpkg
-INFO:  Created: build/usr/local/bin/hello_world
-INFO:  Set executable attribute: build/usr/local/bin/hello_world
-INFO:  Executing: dpkg-deb -Zgzip -b build packages/python-hello-world-1.0-amd64.deb
-dpkg-deb: building package 'python-hello-world' in 'packages/python-hello-world-1.0-amd64.deb'.
-INFO:  Removed build path
+INFO:  Created build/usr/local/bin/python-file-logger.pipenvpkg
 
+...
+
+INFO:  Creating build/DEBIAN/postinst
+INFO:  Set executable attribute: build/DEBIAN/postinst
+INFO:  Set executable attribute: build/DEBIAN/postrm
+INFO:  Set executable attribute: build/DEBIAN/control
+INFO:  Set executable attribute: build/DEBIAN/postinst
+INFO:  Set executable attribute: build/DEBIAN/prerm
+INFO:  Set executable attribute: build/DEBIAN/preinst
+INFO:  Created: build/usr/local/bin/file_logger
+INFO:  Set executable attribute: build/usr/local/bin/file_logger
+INFO:  Executing: dpkg-deb -Zgzip -b build packages/python-file-logger-1.0-amd64.deb
+dpkg-deb: building package 'python-file-logger' in 'packages/python-file-logger-1.0-amd64.deb'.
+INFO:  Removed build path
 ```
 
 ## Installing the hello-world Program
 The debian package is installed as shown below
 
 ```
-sudo dpkg -i packages/python-hello-world-1.0-amd64.deb
-Selecting previously unselected package python-hello-world.
-(Reading database ... 414511 files and directories currently installed.)
-Preparing to unpack .../python-hello-world-1.0-amd64.deb ...
-Unpacking python-hello-world (1.0) ...
-Setting up python-hello-world (1.0) ...
+sudo dpkg -i packages/python-file-logger-1.0-amd64.deb
+#Selecting previously unselected package python-file-logger.
+(Reading database ... 447928 files and directories currently installed.)
+Preparing to unpack .../python-file-logger-1.0-amd64.deb ...
+Unpacking python-file-logger (1.0) ...
+Setting up python-file-logger (1.0) ...
 
+...
+
+✔ Successfully created virtual environment!
+Virtualenv location: /usr/local/bin/python-file-logger.pipenvpkg/.venv
+Installing dependencies from Pipfile.lock (db4242)...
+  🐍   ▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉▉ 0/0 — 00:00:00
+To activate this project's virtualenv, run pipenv shell.
+Alternatively, run a command inside the virtualenv with pipenv run.
+********************************************
+*** The file_logger command is installed ***
+********************************************
+
+To start the file logger service enter 'sudo service file_logger start'
+To stop the file logger service enter 'sudo service file_logger stop'
+
+Processing triggers for systemd (245.4-4ubuntu3.6) ...
 ```
 
-## Running the hello-world command
-Assuming that /usr/local/bin is in your path you can now run the program on the command line of any terminal.
-
-E.G
+## Checking the logger programming is running
+As described when the logger was installed run the following command to start the file logger running
 
 ```
-hello_world
-Hello World
-
+sudo service file_logger start
 ```
 
-## Uninstalling the hello-world Program
+Check the logger is running by running
+
+```
+tail -f /var/log/file_log.txt
+count=1
+count=2
+count=3
+count=4
+count=5
+count=6
+count=7
+count=8
+count=9
+count=10
+count=11
+count=12
+count=13
+```
+
+Running the following command will stop the file logger running.
+
+```
+sudo service file_logger stop
+```
+
+## Uninstalling the file logger program
 The debian package is installed as shown below
 
 ```
-sudo dpkg -r python-hello-world
-(Reading database ... 415089 files and directories currently installed.)
-Removing python-hello-world (1.0) ..
+udo dpkg -r python-file-logger
+(Reading database ... 447936 files and directories currently installed.)
+Removing python-file-logger (1.0) ...
+**************************************************
+*** The file logger command is going to be removed
+**************************************************
+************************************************
+*** The file_logger command has been removed ***
+************************************************
+Processing triggers for systemd (245.4-4ubuntu3.6) ...
 ```

@@ -23,8 +23,9 @@ To use the pipenv2deb tool run the 'sudo python3 -m pipenv2deb' command in a fol
                prerm:    Script executed before removal (optional).
                postrm:   Script executed after removal (optional).
 ```
-               See https://www.debian.org/doc/manuals/debian-faq/pkg-basics.en.html for
-               more information on these files.
+
+ See https://www.debian.org/doc/manuals/debian-faq/pkg-basics.en.html for more information on these files.
+
  Other folders are optional
 
    - root-fs:    Contains files/folders to be copied into the root of the destination file
@@ -36,7 +37,6 @@ To use the pipenv2deb tool run the 'sudo python3 -m pipenv2deb' command in a fol
    Any other folder name (optional) that is not debian, packages, build or .venv
    is copied to the package folder unless an exclude_folder_list.txt file exists.
    If this file exists then each line should detail folder that is to be excluded.
-   This folder list is in addition to those detailed above.
 
    Folders that are installed will typically be python modules that are required
    by your application.
@@ -44,8 +44,7 @@ To use the pipenv2deb tool run the 'sudo python3 -m pipenv2deb' command in a fol
  Finally there should be at least one python file with a main entry point (required).
 
 ## Examples
-The https://github.com/pjaos/pipenv2deb repo contains an examples folder that
-shows how pipenv2deb maybe used.
+The https://github.com/pjaos/pipenv2deb/tree/master/examples folder provides examples of how to use pipenv2deb.
 
 
 ## Command line help

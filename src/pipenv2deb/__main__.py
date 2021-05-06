@@ -459,7 +459,7 @@ def main():
                               '\n'
                               '              Any other folder name (optional) that is not {}, {}, {}\n'
                               '              or {} is copied to the package folder unless\n'
-                              '              a {} file exists. If this file exists then each line should\n'
+                              '              an {} file exists. If this file exists then each line should\n'
                               '              detail folder that is to be excluded. This folder list is in addition to those detailed above.\n'
                               '\n'
                               '              Folders that are installed will typically be python modules that are required\n'

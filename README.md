@@ -48,7 +48,7 @@ The https://github.com/pjaos/pipenv2deb/tree/master/examples folder provides exa
 
 
 ## Command line help
-Run the 'sudo pipenv2deb -h' command (once pipenv2deb is installed) for command line help as shown below.
+Run the 'sudo python3 -m pipenv2deb -h' command (once pipenv2deb is installed) for command line help as shown below.
 
 
 ```

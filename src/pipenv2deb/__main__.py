@@ -183,29 +183,18 @@ class DebBuilder(object):
         """@brief Create a script to rebuild the pipenv in the local folder.
                   This can be useful during development but is not used in the deb file.
            @return None"""
-        createPipEnvFile = os.path.join(DebBuilder.CREATE_PIPENV_FILENAME)
-        fd = open(createPipEnvFile, 'w')
-        fd.write("#!/bin/sh\n")
-        fd.write("export PIPENV_VENV_IN_PROJECT=enabled\n")
-        fd.write("pipenv --three install\n")
-        fd.close()
-        self._setExecutable(createPipEnvFile)
-
-    def _createTargetRebuildPipenvScript(self, packageFolder):
-        """@brief Create a script to rebuild the pipenv in the installed fileset.
-           @param packageFolder The target package folder.
-           @return None"""
-        createPipEnvFile = os.path.join(packageFolder, DebBuilder.CREATE_PIPENV_FILENAME)
-        targetPackageFolder = self._getTargetPackageFolder()
-        fd = open(createPipEnvFile, 'w')
-        fd.write("#!/bin/sh\n")
-        fd.write("cd {}\n".format(targetPackageFolder))
-        #If the user does not want the .venv folder outside the install path
-        if not self._options.venv_oip:
-            fd.write("export PIPENV_VENV_IN_PROJECT=enabled\n")
-        fd.write("pipenv --three install\n")
-        fd.close()
-        self._setExecutable(createPipEnvFile)
+        if not os.path.isfile(DebBuilder.CREATE_PIPENV_FILENAME):
+            fd = open(DebBuilder.CREATE_PIPENV_FILENAME, 'w')
+            fd.write("#!/bin/sh\n")
+            #If the user does not want the .venv folder to be outside the install path
+            if not self._options.venv_oip:
+                fd.write("export PIPENV_VENV_IN_PROJECT=enabled\n")
+            fd.write("pipenv --three install\n")
+            fd.close()
+            self._setExecutable(DebBuilder.CREATE_PIPENV_FILENAME)
+            self._uio.info("Created {} file.".format(DebBuilder.CREATE_PIPENV_FILENAME))
+        else:
+            self._uio.info("Using existing {} file.".format(DebBuilder.CREATE_PIPENV_FILENAME))
 
     def _copyFiles(self):
         """@brief Copy Files into the local build area
@@ -258,7 +247,8 @@ class DebBuilder(object):
         shutil.copy(DebBuilder.PIP_LOCK_FILE, packageFolder)
         self._uio.info("Copied %s to %s" % (DebBuilder.PIP_LOCK_FILE, packageFolder))
 
-        self._createTargetRebuildPipenvScript(packageFolder)
+        shutil.copy(DebBuilder.CREATE_PIPENV_FILENAME, packageFolder)
+        self._uio.info("Copied %s to %s" % (DebBuilder.CREATE_PIPENV_FILENAME, packageFolder))
 
         for pythonFile in self._pythonFiles:
             if os.path.isfile(pythonFile):

@@ -41,6 +41,10 @@ To use the pipenv2deb tool run the 'sudo python3 -m pipenv2deb' command in a fol
    Folders that are installed will typically be python modules that are required
    by your application.
 
+   If the create_pip_env.sh file is not present in the top level folder then it is
+   created. This script is copied to the target system in order to create the virtual
+   python environment during installation.
+
  Finally there should be at least one python file with a main entry point (required).
 
 ## Examples

@@ -289,12 +289,21 @@ class DebBuilder(object):
         targetPackageFolder = self._getTargetPackageFolder()
         pipFile = os.path.join(targetPackageFolder, DebBuilder.PIP_FILE)
         targetStartupFile = os.path.join(targetPackageFolder, pythonFile)
+        fileLines = []
+        fileLines.append("#!/bin/sh\n")
+        execLine = ""
+        #If the user does not want the .venv folder to be outside the install path
+        if not self._options.venv_oip:
+            execLine = "PIPENV_VENV_IN_PROJECT=enabled " # This tells pipenv that the .venv folder is in the project folder.
+        execLine = "{}{}".format(execLine, "PIPENV_PIPFILE={} pipenv run {} $@\n".format(pipFile, targetStartupFile))
+        fileLines.append(execLine)
+        
+        #Write the startup script file.
         fd = open(startupScriptFile, 'w')
-        fd.write("#!/bin/sh\n")
-        #Run the command providing the location of the Pipfile
-        fd.write("PIPENV_PIPFILE={} pipenv run {} $@\n".format(pipFile, targetStartupFile))
-
+        for line in fileLines:
+            fd.write(line)
         fd.close()
+
         self._uio.info("Created: {}".format(startupScriptFile))
         self._setExecutable(startupScriptFile)
 

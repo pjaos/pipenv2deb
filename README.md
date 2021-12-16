@@ -7,8 +7,12 @@ To install pipenv2deb run the following command on a debian based (E.G Ubuntu,
   Debian etc) Linux computer.
 
 ```
-sudo pip3 install pipenv2deb
+sudo python3 -m pip install .
 ```
+
+Note 
+ - python3 must start a python version >= 3.8.
+ - sudo must be used to install pipenv2deb as to generate a deb file the pipenv2deb command must be executed as root. Therefore pipenv2deb cannot be placed under ~/.local/ which is the case if sudo is not used.
 
 ## Using pipenv2deb
 To use the pipenv2deb tool run the 'sudo python3 -m pipenv2deb' command in a folder containing the following.

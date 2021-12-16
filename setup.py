@@ -22,7 +22,8 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
     classifiers=[
-        "License :: %s" % (LICENSE),
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: {}".format(LICENSE),
         "Operating System :: OS Independent",
     ],
     install_requires=[

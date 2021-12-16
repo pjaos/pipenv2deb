@@ -289,6 +289,16 @@ class DebBuilder(object):
         targetPackageFolder = self._getTargetPackageFolder()
         pipFile = os.path.join(targetPackageFolder, DebBuilder.PIP_FILE)
         targetStartupFile = os.path.join(targetPackageFolder, pythonFile)
+
+        # The python file that is executed from the targetStartupFile must be executable.
+        # Ensure the python file is executable under the build folder.
+        buildFolder = DebBuilder.BUILD_FOLDER + targetPackageFolder
+        buildFolderPythonFile = os.path.join(buildFolder, pythonFile)
+        if os.path.isfile(buildFolderPythonFile):
+            self._setExecutable(buildFolderPythonFile)
+        else:
+            raise Exception("{} file not found.".format(buildFolderPythonFile))
+        
         fileLines = []
         fileLines.append("#!/bin/sh\n")
         execLine = ""

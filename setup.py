@@ -1,7 +1,7 @@
 import setuptools
 
 MODULE_NAME    = "pipenv2deb"                                                   # The python module name
-VERSION        = "2.0.6"                                                        # The version of the application
+VERSION        = "2.0.7"                                                        # The version of the application
 AUTHOR         = "Paul Austen"                                                  # The name of the applications author
 AUTHOR_EMAIL   = "pausten.os@gmail.com"                                         # The email address of the author
 DESCRIPTION    = "A tool to produce a deb installer for a python projects that use pipenv." # A short description of the application
